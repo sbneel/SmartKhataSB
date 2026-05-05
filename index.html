@@ -979,23 +979,14 @@ select option { background: var(--card-bg); color: var(--on-surface); }
       <div class="settings-section">
         <div class="settings-section-title" data-i18n="data">Data</div>
         <div class="settings-card">
-          <div class="settings-item" onclick="exportData()">
-            <div class="settings-item-icon"><span class="material-icons-round">download</span></div>
+          <div class="settings-item" onclick="exportPDF()">
+            <div class="settings-item-icon"><span class="material-icons-round">picture_as_pdf</span></div>
             <div class="settings-item-info">
               <div class="settings-item-title" data-i18n="exportData">Export Data</div>
-              <div class="settings-item-sub" data-i18n="downloadAsJson">Download as JSON</div>
+              <div class="settings-item-sub" data-i18n="downloadAsPdf">Download as PDF</div>
             </div>
             <span class="material-icons-round" style="color:var(--on-surface-variant);font-size:18px">chevron_right</span>
           </div>
-          <div class="settings-item" onclick="triggerImport()">
-            <div class="settings-item-icon"><span class="material-icons-round">upload</span></div>
-            <div class="settings-item-info">
-              <div class="settings-item-title" data-i18n="importData">Import Data</div>
-              <div class="settings-item-sub" data-i18n="fromJsonFile">From JSON file</div>
-            </div>
-            <span class="material-icons-round" style="color:var(--on-surface-variant);font-size:18px">chevron_right</span>
-          </div>
-          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
           <div class="settings-item" onclick="confirmReset()">
             <div class="settings-item-icon" style="background:#FFEBEE"><span class="material-icons-round" style="color:var(--expense-color)">delete_forever</span></div>
             <div class="settings-item-info">
@@ -1051,8 +1042,10 @@ select option { background: var(--card-bg); color: var(--on-surface); }
     <span class="material-icons-round">add</span>
   </button>
 
-  <!-- Ads Footer -->
-  <div id="adsFooter" class="hidden"></div>
+  <!-- Ads Footer (Adsterra) -->
+  <div id="adsFooter" class="hidden">
+    <div id="adsInner"></div>
+  </div>
 
 </div><!-- end #app -->
 
@@ -1146,12 +1139,21 @@ const firebaseConfig = {
 };
 
 // ============================================
-// ADS CONFIGURATION
+// ADS CONFIGURATION — Adsterra
 // ============================================
 const ADS_CONFIG = {
   enabled: true,
-  provider: "monetag",
-  script: "PASTE_AD_SCRIPT_HERE"
+  // Paste your Adsterra banner script src URL here
+  // e.g. "//www.topcreativeformat.com/YOUR_KEY/invoke.js"
+  scriptSrc: "PASTE_ADSTERRA_SCRIPT_SRC_HERE",
+  // Adsterra atOptions config (from your Adsterra dashboard)
+  atOptions: {
+    key: "PASTE_YOUR_KEY_HERE",
+    format: "iframe",
+    height: 50,
+    width: 320,
+    params: {}
+  }
 };
 
 // ============================================
@@ -1211,7 +1213,8 @@ const TRANSLATIONS = {
     noTransactions: 'No transactions yet', noTransactionsSub: 'Tap + to add your first transaction',
     noResults: 'No results found', noResultsSub: 'Try a different search or filter',
     exported: '✓ Data exported successfully', imported: '✓ Data imported',
-    importError: '✗ Invalid JSON file', resetDone: '✓ All data reset'
+    importError: '✗ Invalid JSON file', resetDone: '✓ All data reset',
+    downloadAsPdf: 'Download as PDF'
   },
   bn: {
     totalBalance: 'মোট ব্যালেন্স', income: 'আয়', expense: 'ব্যয়',
@@ -1240,7 +1243,8 @@ const TRANSLATIONS = {
     noTransactions: 'এখনো কোনো লেনদেন নেই', noTransactionsSub: 'প্রথম লেনদেন যোগ করতে + ট্যাপ করুন',
     noResults: 'কোনো ফলাফল পাওয়া যায়নি', noResultsSub: 'ভিন্ন অনুসন্ধান বা ফিল্টার ব্যবহার করুন',
     exported: '✓ তথ্য রপ্তানি সফল', imported: '✓ তথ্য আমদানি হয়েছে',
-    importError: '✗ অবৈধ JSON ফাইল', resetDone: '✓ সব তথ্য মুছে গেছে'
+    importError: '✗ অবৈধ JSON ফাইল', resetDone: '✓ সব তথ্য মুছে গেছে',
+    downloadAsPdf: 'PDF হিসেবে ডাউনলোড'
   }
 };
 
@@ -2091,47 +2095,134 @@ function applySettings() {
 }
 
 // ============================================
-// DATA EXPORT / IMPORT
+// PDF EXPORT (pure JS — no library needed)
 // ============================================
-function exportData() {
-  const data = { version: '1.0', exportedAt: new Date().toISOString(), transactions: STATE.transactions, settings: STATE.settings };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'smart-khata-sb-' + Date.now() + '.json';
-  a.click(); URL.revokeObjectURL(url);
-  showToast(t('exported'), 'success');
-}
+function exportPDF() {
+  showToast('Generating PDF...', '');
+  const { income, expense, balance } = calcTotals();
+  const cur = STATE.settings.currency;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
 
-function triggerImport() {
-  document.getElementById('importFile').click();
-}
+  // Build HTML content for PDF
+  const txRows = STATE.transactions
+    .slice()
+    .sort((a,b) => new Date(b.date||b.createdAt) - new Date(a.date||a.createdAt))
+    .map(tx => {
+      const isIncome = tx.type === 'income';
+      const amt = parseFloat(tx.amount) || 0;
+      const txDate = tx.date ? new Date(tx.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
+      return `<tr>
+        <td>${escapeHtml(tx.title||'-')}</td>
+        <td>${escapeHtml(tx.category||'-')}</td>
+        <td>${txDate}</td>
+        <td style="color:${isIncome?'#1B873A':'#C0392B'};font-weight:600;text-align:right">
+          ${isIncome?'+':'-'}${cur}${formatAmount(amt)}
+        </td>
+      </tr>`;
+    }).join('');
 
-async function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (data.transactions) {
-        STATE.transactions = data.transactions;
-        saveToLocalStorage();
-        if (STATE.firebaseReady) {
-          const ref = getUserRef();
-          if (ref) {
-            for (const tx of data.transactions) {
-              try { await ref.collection('transactions').doc(tx.id).set(tx); } catch(e2) {}
-            }
-          }
-        }
-        renderDashboard();
-        showToast(t('imported'), 'success');
-      }
-    } catch(err) { showToast(t('importError'), 'error'); sounds.error(); }
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; color: #1C1B1F; padding: 32px; font-size: 13px; }
+  .header { background: linear-gradient(135deg,#6750A4,#4F378B); color:white; border-radius:16px; padding:24px 28px; margin-bottom:24px; }
+  .header h1 { font-size:22px; font-weight:800; margin-bottom:4px; }
+  .header p { opacity:0.8; font-size:12px; }
+  .summary { display:flex; gap:12px; margin-bottom:24px; }
+  .summary-card { flex:1; border-radius:12px; padding:16px; }
+  .summary-card.balance { background:#F3EEF8; }
+  .summary-card.income { background:#E8F5E9; }
+  .summary-card.expense { background:#FFEBEE; }
+  .summary-card .label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; opacity:0.7; margin-bottom:4px; }
+  .summary-card.balance .label { color:#6750A4; }
+  .summary-card.income .label { color:#1B873A; }
+  .summary-card.expense .label { color:#C0392B; }
+  .summary-card .amount { font-size:20px; font-weight:800; }
+  .summary-card.balance .amount { color:#6750A4; }
+  .summary-card.income .amount { color:#1B873A; }
+  .summary-card.expense .amount { color:#C0392B; }
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:#6750A4; color:white; }
+  thead th { padding:10px 12px; text-align:left; font-size:12px; font-weight:600; }
+  thead th:last-child { text-align:right; }
+  tbody tr:nth-child(even) { background:#F8F5FF; }
+  tbody tr:hover { background:#EDE9F6; }
+  tbody td { padding:9px 12px; border-bottom:1px solid #E7E0EC; font-size:12px; }
+  .footer { margin-top:24px; text-align:center; font-size:11px; color:#79747E; }
+  .section-title { font-size:14px; font-weight:700; color:#6750A4; margin-bottom:10px; }
+  @media print {
+    body { padding:16px; }
+    .header { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    thead tr { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    tbody tr:nth-child(even) { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>💰 Smart Khata SB</h1>
+    <p>Transaction Report &nbsp;·&nbsp; Generated: ${dateStr} at ${timeStr}</p>
+  </div>
+  <div class="summary">
+    <div class="summary-card balance">
+      <div class="label">Net Balance</div>
+      <div class="amount">${cur}${formatAmount(Math.abs(balance))}</div>
+    </div>
+    <div class="summary-card income">
+      <div class="label">Total Income</div>
+      <div class="amount">${cur}${formatAmount(income)}</div>
+    </div>
+    <div class="summary-card expense">
+      <div class="label">Total Expense</div>
+      <div class="amount">${cur}${formatAmount(expense)}</div>
+    </div>
+  </div>
+  <div class="section-title">All Transactions (${STATE.transactions.length})</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th style="text-align:right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${txRows || '<tr><td colspan="4" style="text-align:center;padding:24px;color:#79747E">No transactions found</td></tr>'}
+    </tbody>
+  </table>
+  <div class="footer">Smart Khata SB &nbsp;·&nbsp; Premium Income & Expense Tracker</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=800,height=600');
+  if (!win) {
+    // Fallback: download as HTML file if popup blocked
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'smart-khata-report-' + Date.now() + '.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('exported'), 'success');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  // Auto-trigger print dialog (Save as PDF)
+  win.onload = () => {
+    setTimeout(() => {
+      win.focus();
+      win.print();
+    }, 400);
   };
-  reader.readAsText(file);
-  event.target.value = '';
+  showToast(t('exported'), 'success');
 }
 
 function confirmReset() {
@@ -2187,15 +2278,30 @@ function showToast(msg, type = '') {
 }
 
 // ============================================
-// ADS INTEGRATION
+// ADS INTEGRATION — Adsterra
 // ============================================
 function initAds() {
-  if (!ADS_CONFIG.enabled || !ADS_CONFIG.script || ADS_CONFIG.script === 'PASTE_AD_SCRIPT_HERE') return;
+  if (!ADS_CONFIG.enabled) return;
+  if (
+    ADS_CONFIG.scriptSrc === 'PASTE_ADSTERRA_SCRIPT_SRC_HERE' ||
+    ADS_CONFIG.atOptions.key === 'PASTE_YOUR_KEY_HERE'
+  ) return; // Not configured yet
+
   const footer = document.getElementById('adsFooter');
+  const inner = document.getElementById('adsInner');
   footer.classList.remove('hidden');
-  const script = document.createElement('script');
-  script.innerHTML = ADS_CONFIG.script;
-  footer.appendChild(script);
+
+  // Adsterra standard banner: inject atOptions then their invoke script
+  const optScript = document.createElement('script');
+  optScript.type = 'text/javascript';
+  optScript.text = `atOptions = ${JSON.stringify(ADS_CONFIG.atOptions)};`;
+  inner.appendChild(optScript);
+
+  const invokeScript = document.createElement('script');
+  invokeScript.type = 'text/javascript';
+  invokeScript.src = ADS_CONFIG.scriptSrc;
+  invokeScript.async = true;
+  inner.appendChild(invokeScript);
 }
 
 // ============================================
