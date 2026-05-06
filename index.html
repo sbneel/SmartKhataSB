@@ -351,7 +351,7 @@ body.lang-bn { font-family: var(--font-bn); }
 }
 
 .chip-label { font-size: 10px; opacity: 0.8; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
-.chip-amount { font-size: 16px; font-weight: 700; }
+.chip-amount { display: flex; align-items: baseline; gap: 1px; }
 
 /* Stats Row */
 .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -578,10 +578,14 @@ body.lang-bn { font-family: var(--font-bn); }
   background: rgba(0,0,0,0.5); display: none;
   align-items: flex-end; justify-content: center;
   backdrop-filter: blur(4px);
-  animation: overlayIn 0.2s ease;
+  pointer-events: none;
 }
 
-.modal-overlay.visible { display: flex; }
+.modal-overlay.visible {
+  display: flex;
+  pointer-events: auto;
+  animation: overlayIn 0.2s ease;
+}
 
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -590,6 +594,9 @@ body.lang-bn { font-family: var(--font-bn); }
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%; max-width: 500px;
   max-height: 92vh; overflow-y: auto;
+}
+
+.modal-overlay.visible .modal-sheet {
   animation: sheetUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -642,8 +649,8 @@ body.lang-bn { font-family: var(--font-bn); }
 .form-actions { display: flex; gap: 10px; margin-top: 20px; }
 
 .btn {
-  flex: 1; padding: 14px; border-radius: var(--radius-md);
-  border: none; cursor: pointer; font-size: 15px; font-weight: 600;
+  flex: 1; padding: 10px 14px; border-radius: var(--radius-sm);
+  border: none; cursor: pointer; font-size: 13px; font-weight: 600;
   transition: var(--transition); font-family: var(--font-main);
   position: relative; overflow: hidden;
 }
@@ -707,9 +714,10 @@ body.lang-bn { font-family: var(--font-bn); }
   background: rgba(0,0,0,0.5); display: none;
   align-items: center; justify-content: center; padding: 24px;
   backdrop-filter: blur(4px);
+  pointer-events: none;
 }
 
-.confirm-dialog.visible { display: flex; }
+.confirm-dialog.visible { display: flex; pointer-events: auto; }
 
 .confirm-card {
   background: var(--card-bg); border-radius: var(--radius-xl);
@@ -743,6 +751,326 @@ select option { background: var(--card-bg); color: var(--on-surface); }
   .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)); }
 }
 
+/* ============================================
+   TRANSACTION DETAILS MODAL
+   ============================================ */
+.details-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  margin: 0 -20px; padding: 18px 20px 16px;
+  color: white; position: relative;
+  border-radius: 0 0 20px 20px;
+}
+.details-hero.expense-hero {
+  background: linear-gradient(135deg, #C62828 0%, #B71C1C 100%);
+}
+.details-hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.details-emoji {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: rgba(255,255,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.25);
+}
+.details-edit-btn {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px 9px; border-radius: 14px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white; font-size: 10px; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+  font-family: var(--font-main);
+  backdrop-filter: blur(8px);
+}
+.details-edit-btn:hover { background: rgba(255,255,255,0.28); }
+.details-edit-btn .material-icons-round { font-size: 11px; }
+.details-amount {
+  font-weight: 800; letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+.details-title-text {
+  font-size: 13px; font-weight: 600; opacity: 0.9;
+}
+.details-body { padding: 12px 0 4px; }
+.details-row {
+  display: flex; align-items: flex-start;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--outline-variant);
+  gap: 12px;
+}
+.details-row:last-child { border-bottom: none; }
+.details-row-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--surface-variant);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--on-surface-variant);
+}
+.details-row-icon .material-icons-round { font-size: 16px; }
+.details-row-label {
+  font-size: 10px; font-weight: 600; color: var(--on-surface-variant);
+  text-transform: uppercase; letter-spacing: 0.4px;
+  margin-bottom: 2px;
+}
+.details-row-value {
+  font-size: 13px; font-weight: 500; color: var(--on-surface);
+  word-break: break-word; line-height: 1.4;
+}
+.details-row-value.muted { color: var(--on-surface-variant); font-style: italic; font-weight: 400; }
+.details-history-btn {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; padding: 10px 0;
+  border: none; background: transparent;
+  cursor: pointer; font-family: var(--font-main);
+  color: var(--primary); font-size: 13px; font-weight: 600;
+  transition: var(--transition);
+}
+.details-history-btn:hover { opacity: 0.75; }
+.details-history-btn .material-icons-round { font-size: 16px; }
+.details-history-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 7px; border-radius: 9px;
+  background: var(--primary-light); color: var(--primary);
+  font-size: 10px; font-weight: 700;
+}
+
+.tx-type-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 7px;
+  font-size: 11px; font-weight: 700;
+}
+.tx-type-pill.income { background: #E8F5E9; color: var(--income-color); }
+.tx-type-pill.expense { background: #FFEBEE; color: var(--expense-color); }
+.tx-edited-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 6px; border-radius: 5px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+  background: rgba(103,80,164,0.12); color: var(--primary);
+  text-transform: uppercase;
+}
+
+.tx-edited-badge .material-icons-round { font-size: 9px; }
+
+/* Details close button */
+.details-close-btn {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; background: var(--surface-variant);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--on-surface-variant);
+  transition: var(--transition); z-index: 10;
+}
+.details-close-btn:hover { background: var(--outline-variant); color: var(--on-surface); }
+.details-close-btn .material-icons-round { font-size: 16px; }
+
+/* Currency / Amount span separation */
+.tx-currency {
+  font-size: 10px; font-weight: 500; opacity: 0.75;
+  letter-spacing: 0.3px; vertical-align: baseline;
+  margin-right: 1px;
+}
+.tx-value {
+  font-size: 15px; font-weight: 700;
+}
+
+.chip-currency {
+  font-size: 10px; font-weight: 500; opacity: 0.8;
+  letter-spacing: 0.3px; margin-right: 1px;
+}
+.chip-value {
+  font-size: 16px; font-weight: 700;
+}
+
+.details-amount-value {
+  font-size: 26px; font-weight: 800; letter-spacing: -0.5px;
+}
+
+/* Smaller currency text in details amount */
+.details-amount-currency {
+  font-size: 14px; font-weight: 500; opacity: 0.82;
+  vertical-align: super; margin-right: 2px;
+  letter-spacing: 0;
+}
+
+/* Three icon action buttons at bottom of details */
+.details-icon-actions {
+  display: flex; justify-content: center; gap: 12px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--outline-variant);
+}
+.details-icon-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 14px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--outline-variant);
+  background: var(--surface); cursor: pointer;
+  transition: var(--transition); min-width: 64px;
+  font-family: var(--font-main);
+}
+.details-icon-btn:active { transform: scale(0.95); }
+.details-icon-btn:hover { background: var(--surface-variant); border-color: var(--outline); }
+.details-icon-btn-icon { font-size: 18px; line-height: 1; }
+.details-icon-btn-label {
+  font-size: 10px; font-weight: 600; color: var(--on-surface-variant);
+  text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+}
+.details-icon-btn--danger:hover { background: var(--error-container); border-color: var(--error); }
+.details-icon-btn--danger:hover .details-icon-btn-label { color: var(--error); }
+.details-icon-btn--history:hover { background: var(--primary-light); border-color: var(--primary); }
+.details-icon-btn--history:hover .details-icon-btn-label { color: var(--primary); }
+
+
+
+.history-modal-overlay {
+  position: fixed; inset: 0; z-index: 210;
+  background: rgba(0,0,0,0.55);
+  display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+.history-modal-overlay.visible {
+  display: flex;
+  pointer-events: auto;
+  animation: overlayIn 0.2s ease;
+}
+
+.history-sheet {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%; max-width: 500px;
+  max-height: 88vh; overflow-y: auto;
+}
+
+.history-modal-overlay.visible .history-sheet {
+  animation: sheetUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-timeline { padding: 0 20px 8px; }
+
+.history-action-bar {
+  display: flex; gap: 8px;
+  padding: 10px 20px 20px;
+  border-top: 1px solid var(--outline-variant);
+  background: var(--card-bg);
+  position: sticky; bottom: 0;
+}
+
+.history-entry {
+  display: flex; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--outline-variant);
+  position: relative;
+}
+.history-entry:last-child { border-bottom: none; }
+
+.history-dot-col {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0; padding-top: 3px;
+}
+
+.history-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--primary); flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(103,80,164,0.18);
+}
+.history-dot.created { background: var(--income-color); box-shadow: 0 0 0 3px rgba(27,135,58,0.18); }
+.history-dot.deleted { background: var(--expense-color); box-shadow: 0 0 0 3px rgba(192,57,43,0.18); }
+
+.history-line {
+  width: 2px; flex: 1; background: var(--outline-variant);
+  margin-top: 5px; min-height: 20px;
+}
+
+.history-content { flex: 1; min-width: 0; }
+
+.history-action-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.history-action-label {
+  font-size: 11px; font-weight: 700;
+  color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px;
+}
+.history-action-label.created { color: var(--income-color); }
+.history-action-label.deleted { color: var(--expense-color); }
+
+.history-timestamp {
+  font-size: 10px; color: var(--on-surface-variant);
+  display: flex; align-items: center; gap: 3px;
+}
+
+.history-changes { display: flex; flex-direction: column; gap: 4px; }
+
+.history-change-row {
+  display: flex; align-items: flex-start; gap: 6px;
+  background: var(--surface-variant); border-radius: 7px;
+  padding: 6px 8px;
+}
+
+.history-field {
+  font-size: 9px; font-weight: 700; color: var(--on-surface-variant);
+  text-transform: uppercase; letter-spacing: 0.3px; min-width: 50px; flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.history-values { flex: 1; min-width: 0; }
+
+.history-old {
+  font-size: 11px; color: var(--expense-color);
+  text-decoration: line-through; word-break: break-word;
+  opacity: 0.85;
+}
+
+.history-arrow {
+  font-size: 10px; color: var(--on-surface-variant); margin: 1px 0;
+}
+
+.history-new {
+  font-size: 11px; color: var(--income-color);
+  font-weight: 600; word-break: break-word;
+}
+
+.history-empty {
+  text-align: center; padding: 28px 0; color: var(--on-surface-variant); font-size: 13px;
+}
+
+.history-view-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 9px; border-radius: 7px;
+  border: 1.5px solid var(--primary); background: transparent;
+  color: var(--primary); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: var(--transition); font-family: var(--font-main);
+}
+.history-view-btn:hover { background: var(--primary-light); }
+.history-view-btn .material-icons-round { font-size: 12px; }
+
+.tx-action-btn {
+  width: 26px; height: 26px; border-radius: 7px; border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition); flex-shrink: 0;
+}
+.tx-action-btn:active { transform: scale(0.9); }
+
+.tx-history-icon {
+  display: inline-flex; align-items: center; gap: 2px;
+  cursor: pointer; color: var(--primary); opacity: 0.72;
+  font-size: 10px; font-weight: 600;
+  padding: 1px 5px; border-radius: 5px;
+  background: var(--primary-light);
+  transition: opacity 0.2s;
+}
+.tx-history-icon:hover { opacity: 1; }
+
+/* History action bar buttons - smaller */
+.history-action-bar .btn {
+  padding: 8px 12px; font-size: 12px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.history-action-bar .btn .material-icons-round { font-size: 15px; vertical-align: middle; }
+
 </style>
 </head>
 <body>
@@ -766,17 +1094,16 @@ select option { background: var(--card-bg); color: var(--on-surface); }
   <!-- Header -->
   <header class="app-header">
     <div class="header-profile">
-      <div class="profile-avatar" id="profileAvatar">SK</div>
+      <div style="position:relative;flex-shrink:0;">
+        <div class="profile-avatar" id="profileAvatar">SK</div>
+        <div class="connection-dot connecting" id="connectionDot" title="Connection Status" style="position:absolute;bottom:1px;right:1px;width:9px;height:9px;border:2px solid white;border-radius:50%;box-sizing:content-box;"></div>
+      </div>
       <div class="profile-info">
         <div class="profile-name" id="profileName">Smart Khata</div>
         <div class="profile-sub" id="profileSub">@smartkhata</div>
       </div>
     </div>
     <div class="header-actions">
-      <div class="connection-dot connecting" id="connectionDot" title="Connection Status"></div>
-      <button class="icon-btn" onclick="exportData()" title="Export">
-        <span class="material-icons-round" style="font-size:20px">download</span>
-      </button>
       <button class="icon-btn" onclick="navigateTo('settings')" title="Settings">
         <span class="material-icons-round" style="font-size:20px">settings</span>
       </button>
@@ -794,17 +1121,17 @@ select option { background: var(--card-bg); color: var(--on-surface); }
         <canvas id="balanceThree"></canvas>
         <div class="balance-label" data-i18n="totalBalance">Total Balance</div>
         <div class="balance-amount" id="balanceAmount">
-          <span class="balance-currency" id="balanceCurrency">৳</span>
+          <span class="balance-currency" id="balanceCurrency">BDT</span>
           <span id="balanceValue">0.00</span>
         </div>
         <div class="balance-row">
           <div class="balance-chip">
             <div class="chip-label"><span class="material-icons-round" style="font-size:12px">arrow_downward</span> <span data-i18n="income">Income</span></div>
-            <div class="chip-amount" id="totalIncomeDisplay">৳0.00</div>
+            <div class="chip-amount" id="totalIncomeDisplay">BDT 0.00</div>
           </div>
           <div class="balance-chip">
             <div class="chip-label"><span class="material-icons-round" style="font-size:12px">arrow_upward</span> <span data-i18n="expense">Expense</span></div>
-            <div class="chip-amount" id="totalExpenseDisplay">৳0.00</div>
+            <div class="chip-amount" id="totalExpenseDisplay">BDT 0.00</div>
           </div>
         </div>
       </div>
@@ -949,16 +1276,26 @@ select option { background: var(--card-bg); color: var(--on-surface); }
             <div class="settings-item-icon"><span class="material-icons-round">attach_money</span></div>
             <div class="settings-item-info">
               <div class="settings-item-title" data-i18n="currency">Currency</div>
-              <div class="settings-item-sub" id="currencySubLabel">৳ BDT</div>
+              <div class="settings-item-sub" id="currencySubLabel">BDT</div>
             </div>
             <div class="settings-item-right">
               <select class="sort-select" style="width:100px" id="currencySelect" onchange="setCurrency(this.value)">
-                <option value="৳">৳ BDT</option>
+                <option value="BDT">BDT</option>
                 <option value="$">$ USD</option>
                 <option value="€">€ EUR</option>
                 <option value="£">£ GBP</option>
                 <option value="₹">₹ INR</option>
                 <option value="¥">¥ JPY</option>
+                <option value="SAR">SAR</option>
+                <option value="AED">AED</option>
+                <option value="QAR">QAR</option>
+                <option value="KWD">KWD</option>
+                <option value="OMR">OMR</option>
+                <option value="BHD">BHD</option>
+                <option value="EGP">EGP</option>
+                <option value="DZD">DZD</option>
+                <option value="MAD">MAD</option>
+                <option value="LBP">LBP</option>
               </select>
             </div>
           </div>
@@ -1049,6 +1386,72 @@ select option { background: var(--card-bg); color: var(--on-surface); }
 
 </div><!-- end #app -->
 
+<!-- Transaction Details Modal -->
+<div class="modal-overlay" id="detailsModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" style="padding:0 20px 28px;position:relative;">
+      <!-- Close button top-right -->
+      <button class="details-close-btn" onclick="closeDetailsModal()" title="Close">
+        <span class="material-icons-round">close</span>
+      </button>
+      <div class="details-hero" id="detailsHero">
+        <div class="details-hero-top">
+          <div class="details-emoji" id="detailsEmoji">💸</div>
+        </div>
+        <div class="details-amount" id="detailsAmount">0.00</div>
+        <div class="details-title-text" id="detailsTitleText">-</div>
+      </div>
+      <div class="details-body">
+        <div class="details-row">
+          <div class="details-row-icon"><span class="material-icons-round">swap_vert</span></div>
+          <div>
+            <div class="details-row-label" data-i18n="type">Type</div>
+            <div class="details-row-value" id="detailsType"></div>
+          </div>
+        </div>
+        <div class="details-row">
+          <div class="details-row-icon"><span class="material-icons-round">category</span></div>
+          <div>
+            <div class="details-row-label" data-i18n="category">Category</div>
+            <div class="details-row-value" id="detailsCategory">-</div>
+          </div>
+        </div>
+        <div class="details-row">
+          <div class="details-row-icon"><span class="material-icons-round">calendar_today</span></div>
+          <div>
+            <div class="details-row-label" data-i18n="date">Date</div>
+            <div class="details-row-value" id="detailsDate">-</div>
+          </div>
+        </div>
+        <div class="details-row">
+          <div class="details-row-icon"><span class="material-icons-round">notes</span></div>
+          <div>
+            <div class="details-row-label" data-i18n="notes">Notes</div>
+            <div class="details-row-value" id="detailsNotes">-</div>
+          </div>
+        </div>
+        <div id="detailsHistoryRow" class="hidden" style="border-top:1px solid var(--outline-variant);margin-top:4px;"></div>
+        <!-- Three small icon buttons at bottom -->
+        <div class="details-icon-actions">
+          <button class="details-icon-btn" onclick="openEditFromDetails()" title="Edit">
+            <span class="details-icon-btn-icon">✏️</span>
+            <span class="details-icon-btn-label" data-i18n="editBtn">Edit</span>
+          </button>
+          <button class="details-icon-btn details-icon-btn--danger" onclick="deleteCurrentTxFromDetails()" title="Delete">
+            <span class="details-icon-btn-icon">🗑️</span>
+            <span class="details-icon-btn-label" data-i18n="delete">Delete</span>
+          </button>
+          <button class="details-icon-btn details-icon-btn--history" id="detailsHistoryIconBtn" onclick="openHistoryFromDetails()" title="View Edit History" style="display:none;">
+            <span class="details-icon-btn-icon">🕓</span>
+            <span class="details-icon-btn-label" data-i18n="viewEditHistory">History <span id="detailsHistoryCount" style="font-size:9px;font-weight:700;"></span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add/Edit Transaction Modal -->
 <div class="modal-overlay" id="txModal">
   <div class="modal-sheet">
@@ -1091,7 +1494,7 @@ select option { background: var(--card-bg); color: var(--on-surface); }
       </div>
       <div class="form-group">
         <label class="form-label" data-i18n="notes">Notes</label>
-        <input type="text" class="form-input" id="txNotes" data-i18n-placeholder="notesPlaceholder" placeholder="Optional notes...">
+        <textarea class="form-input" id="txNotes" data-i18n-placeholder="notesPlaceholder" placeholder="Optional notes..." rows="3" style="resize:none;line-height:1.5;"></textarea>
       </div>
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal()" data-i18n="cancel">Cancel</button>
@@ -1111,6 +1514,30 @@ select option { background: var(--card-bg); color: var(--on-surface); }
     <div class="confirm-actions">
       <button class="btn btn-secondary" onclick="closeConfirm()" data-i18n="cancel">Cancel</button>
       <button class="btn btn-danger" id="confirmOkBtn" data-i18n="confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit History Modal -->
+<div class="history-modal-overlay" id="historyModal">
+  <div class="history-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="historyModalTitle">Edit History</div>
+      <button class="icon-btn" onclick="closeHistoryModal()">
+        <span class="material-icons-round">close</span>
+      </button>
+    </div>
+    <div class="history-timeline" id="historyTimeline"></div>
+    <div class="history-action-bar" id="historyActionBar">
+      <button class="btn btn-danger" id="historyDeleteBtn" onclick="deleteFromHistory()" style="flex:1;">
+        <span class="material-icons-round" style="font-size:18px;vertical-align:middle;margin-right:4px;">delete</span>
+        <span data-i18n="delete">Delete</span>
+      </button>
+      <button class="btn btn-primary" id="historyEditBtn2" onclick="openEditFromHistory()" style="flex:1;">
+        <span class="material-icons-round" style="font-size:18px;vertical-align:middle;margin-right:4px;">edit</span>
+        <span data-i18n="editTransaction">Edit</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1164,7 +1591,7 @@ const STATE = {
   userId: null,
   transactions: [],
   settings: {
-    currency: '৳',
+    currency: 'BDT',
     theme: 'auto',
     color: '#6750A4',
     language: 'en',
@@ -1214,7 +1641,12 @@ const TRANSLATIONS = {
     noResults: 'No results found', noResultsSub: 'Try a different search or filter',
     exported: '✓ Data exported successfully', imported: '✓ Data imported',
     importError: '✗ Invalid JSON file', resetDone: '✓ All data reset',
-    downloadAsPdf: 'Download as PDF'
+    downloadAsPdf: 'Download as PDF',
+    viewEditHistory: 'View Edit History', editHistory: 'Edit History',
+    created: 'Created', edited: 'Edited', noHistory: 'No edit history yet.',
+    fieldTitle: 'Title', fieldAmount: 'Amount', fieldType: 'Type',
+    fieldCategory: 'Category', fieldDate: 'Date', fieldNotes: 'Notes',
+    editBtn: 'Edit', txDetails: 'Transaction Details', noNotes: 'No notes'
   },
   bn: {
     totalBalance: 'মোট ব্যালেন্স', income: 'আয়', expense: 'ব্যয়',
@@ -1244,11 +1676,71 @@ const TRANSLATIONS = {
     noResults: 'কোনো ফলাফল পাওয়া যায়নি', noResultsSub: 'ভিন্ন অনুসন্ধান বা ফিল্টার ব্যবহার করুন',
     exported: '✓ তথ্য রপ্তানি সফল', imported: '✓ তথ্য আমদানি হয়েছে',
     importError: '✗ অবৈধ JSON ফাইল', resetDone: '✓ সব তথ্য মুছে গেছে',
-    downloadAsPdf: 'PDF হিসেবে ডাউনলোড'
+    downloadAsPdf: 'PDF হিসেবে ডাউনলোড',
+    viewEditHistory: 'সম্পাদনার ইতিহাস', editHistory: 'সম্পাদনার ইতিহাস',
+    created: 'তৈরি হয়েছে', edited: 'সম্পাদিত', noHistory: 'এখনো কোনো সম্পাদনার ইতিহাস নেই।',
+    fieldTitle: 'শিরোনাম', fieldAmount: 'পরিমাণ', fieldType: 'ধরন',
+    fieldCategory: 'বিভাগ', fieldDate: 'তারিখ', fieldNotes: 'নোট',
+    editBtn: 'সম্পাদনা', txDetails: 'লেনদেনের বিবরণ', noNotes: 'কোনো নোট নেই'
   }
 };
 
 const t = (key) => (TRANSLATIONS[STATE.settings.language] || TRANSLATIONS.en)[key] || key;
+
+// ============================================
+// CURRENCY CONVERSION
+// Rate = how many units of that currency = 1 BDT (base)
+// ============================================
+const EXCHANGE_RATES = {
+  'BDT': 1,         // BDT (base)
+  '৳': 1,           // legacy alias
+  '$': 0.0091,      // USD
+  '€': 0.0084,      // EUR
+  '£': 0.0072,      // GBP
+  '₹': 0.76,        // INR
+  '¥': 1.37,        // JPY
+  'SAR': 0.034,     // SAR
+  'AED': 0.033,     // AED
+  'QAR': 0.033,     // QAR
+  'KWD': 0.0028,    // KWD
+  'OMR': 0.0035,    // OMR
+  'BHD': 0.0034,    // BHD
+  'EGP': 0.45,      // EGP
+  'DZD': 1.22,      // DZD
+  'MAD': 0.091,     // MAD
+  'LBP': 815        // LBP
+};
+
+// Map any old/Arabic currency symbols to English code
+const CURRENCY_NORMALIZE = {
+  '৳': 'BDT',
+  '\u0631.\u0639': 'OMR', '\u0631.\u0642': 'QAR', '\u062f.\u0643': 'KWD',
+  '\u0631.\u0633': 'SAR', '\u062f.\u0625': 'AED', '\u062f.\u0628': 'BHD',
+  '\u062c.\u0645': 'EGP', '\u062f.\u062c': 'DZD', '\u062f.\u0645': 'MAD',
+  '\u0644.\u0644': 'LBP', '\ufdfc': 'SAR'
+};
+function normalizeCurrency(sym) {
+  return CURRENCY_NORMALIZE[sym] || sym;
+}
+
+/**
+ * Convert an amount from one currency to another.
+ * All amounts are stored in their original (base) currency.
+ * @param {number} amount - raw stored amount
+ * @param {string} from   - currency symbol it was saved in
+ * @param {string} to     - current display currency symbol
+ * @returns {number}
+ */
+function convertAmount(amount, from, to) {
+  from = normalizeCurrency(from);
+  to = normalizeCurrency(to);
+  if (!amount || from === to) return amount;
+  const fromRate = EXCHANGE_RATES[from] ?? 1;
+  const toRate   = EXCHANGE_RATES[to]   ?? 1;
+  // Convert: amount → BDT → target currency
+  const inBDT = amount / fromRate;
+  return inBDT * toRate;
+}
 
 // ============================================
 // THREE.JS BACKGROUND — Loading screen
@@ -1610,13 +2102,50 @@ async function addTransaction(txData) {
   return tx;
 }
 
-async function updateTransactionFS(id, data) {
-  const idx = STATE.transactions.findIndex(t => t.id === id);
-  if (idx !== -1) STATE.transactions[idx] = { ...STATE.transactions[idx], ...data };
+async function updateTransactionFS(id, newData) {
+  const idx = STATE.transactions.findIndex(tx => tx.id === id);
+  if (idx === -1) return;
+
+  const old = STATE.transactions[idx];
+
+  // Build field-level diff
+  const FIELD_LABELS = {
+    title: 'fieldTitle', amount: 'fieldAmount', type: 'fieldType',
+    category: 'fieldCategory', date: 'fieldDate', notes: 'fieldNotes'
+  };
+  const changes = [];
+  for (const field of Object.keys(FIELD_LABELS)) {
+    const oldVal = String(old[field] ?? '');
+    const newVal = String(newData[field] ?? '');
+    if (oldVal !== newVal) {
+      const change = { field, oldVal, newVal };
+      if (field === 'amount') {
+        change.oldBaseCurrency = old.baseCurrency || 'BDT';
+        change.newBaseCurrency = newData.baseCurrency || STATE.settings.currency;
+      }
+      changes.push(change);
+    }
+  }
+
+  // Append to edit history
+  const historyEntry = {
+    ts: new Date().toISOString(),
+    changes
+  };
+
+  const editHistory = Array.isArray(old.editHistory) ? [...old.editHistory, historyEntry] : [historyEntry];
+  const updatedTx = { ...old, ...newData, editHistory };
+
+  STATE.transactions[idx] = updatedTx;
   saveToLocalStorage();
+
   const ref = getUserRef();
   if (!STATE.firebaseReady || !ref || id.startsWith('local_')) return;
-  try { await ref.collection('transactions').doc(id).update(data); } catch(e) {}
+  try {
+    await ref.collection('transactions').doc(id).update({ ...newData, editHistory });
+  } catch (e) {
+    console.warn('Firestore update failed:', e.message);
+  }
 }
 
 async function deleteTransactionFS(id) {
@@ -1688,8 +2217,10 @@ function renderDashboard() {
 
   document.getElementById('balanceCurrency').textContent = cur;
   document.getElementById('balanceValue').textContent = formatAmount(Math.abs(balance));
-  document.getElementById('totalIncomeDisplay').textContent = cur + formatAmount(income);
-  document.getElementById('totalExpenseDisplay').textContent = cur + formatAmount(expense);
+  document.getElementById('totalIncomeDisplay').innerHTML =
+    `<span class="chip-currency">${cur}</span><span class="chip-value">${formatAmount(income)}</span>`;
+  document.getElementById('totalExpenseDisplay').innerHTML =
+    `<span class="chip-currency">${cur}</span><span class="chip-value">${formatAmount(expense)}</span>`;
 
   const incTx = STATE.transactions.filter(t => t.type === 'income');
   const expTx = STATE.transactions.filter(t => t.type === 'expense');
@@ -1722,9 +2253,11 @@ function renderDashboard() {
 }
 
 function calcTotals() {
+  const cur = STATE.settings.currency;
   let income = 0, expense = 0;
   STATE.transactions.forEach(tx => {
-    const amt = parseFloat(tx.amount) || 0;
+    const raw = parseFloat(tx.amount) || 0;
+    const amt = convertAmount(raw, tx.baseCurrency || 'BDT', cur);
     if (tx.type === 'income') income += amt;
     else expense += amt;
   });
@@ -1741,18 +2274,26 @@ function txItemHTML(tx) {
   const cur = STATE.settings.currency;
   const isIncome = tx.type === 'income';
   const emoji = getCategoryEmoji(tx.category || '');
-  const date = tx.date ? new Date(tx.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '';
-  return `<div class="transaction-item" onclick="openEditModal('${tx.id}')">
+  const dateStr = tx.date
+    ? new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+    : '';
+  const rawAmount = parseFloat(tx.amount) || 0;
+  const displayAmount = convertAmount(rawAmount, tx.baseCurrency || 'BDT', cur);
+
+  return `<div class="transaction-item" data-tx-id="${escapeHtml(tx.id)}" onclick="openDetailsModal('${escapeHtml(tx.id)}')">
     <div class="tx-icon ${isIncome ? 'income-icon' : 'expense-icon'}">${emoji}</div>
     <div class="tx-info">
       <div class="tx-title">${escapeHtml(tx.title || '-')}</div>
       <div class="tx-meta">
-        <span class="tx-badge ${tx.type}">${tx.type === 'income' ? t('income') : t('expense')}</span>
-        ${tx.category ? `<span>${escapeHtml(tx.category)}</span>` : ''}
-        ${date ? `<span>${date}</span>` : ''}
+        <span class="tx-badge ${tx.type}">${isIncome ? t('income') : t('expense')}</span>
+        ${dateStr ? `<span>${dateStr}</span>` : ''}
       </div>
     </div>
-    <div class="tx-amount ${tx.type}">${isIncome ? '+' : '-'}${cur}${formatAmount(parseFloat(tx.amount)||0)}</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="tx-amount ${tx.type}">
+        ${isIncome ? '+' : '-'}<span class="tx-currency">${cur}</span><span class="tx-value">${formatAmount(displayAmount)}</span>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -1825,6 +2366,91 @@ function clearSearch() {
 }
 
 // ============================================
+// TRANSACTION DETAILS MODAL
+// ============================================
+function openDetailsModal(id) {
+  const tx = STATE.transactions.find(tx => tx.id === id);
+  if (!tx) return;
+  STATE._detailsTxId = id;
+
+  const cur = STATE.settings.currency;
+  const isIncome = tx.type === 'income';
+  const rawAmount = parseFloat(tx.amount) || 0;
+  const displayAmount = convertAmount(rawAmount, tx.baseCurrency || 'BDT', cur);
+  const emoji = getCategoryEmoji(tx.category || '');
+  const editCount = Array.isArray(tx.editHistory) ? tx.editHistory.length : 0;
+
+  // Hero section
+  const hero = document.getElementById('detailsHero');
+  hero.className = 'details-hero' + (isIncome ? '' : ' expense-hero');
+  document.getElementById('detailsEmoji').textContent = emoji;
+  document.getElementById('detailsAmount').innerHTML =
+    `${isIncome ? '+' : '-'}<span class="details-amount-currency">${cur}</span><span class="details-amount-value">${formatAmount(displayAmount)}</span>`;
+  document.getElementById('detailsTitleText').textContent = tx.title || '-';
+
+  // Type pill
+  document.getElementById('detailsType').innerHTML =
+    `<span class="tx-type-pill ${tx.type}">
+      <span class="material-icons-round" style="font-size:13px">${isIncome ? 'arrow_downward' : 'arrow_upward'}</span>
+      ${isIncome ? t('income') : t('expense')}
+    </span>`;
+
+  // Category
+  document.getElementById('detailsCategory').textContent = tx.category || '-';
+
+  // Date
+  if (tx.date) {
+    const d = new Date(tx.date);
+    document.getElementById('detailsDate').textContent =
+      d.toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short', year:'numeric' }) +
+      ' · ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  } else {
+    document.getElementById('detailsDate').textContent = '-';
+  }
+
+  // Notes
+  const notesEl = document.getElementById('detailsNotes');
+  if (tx.notes && tx.notes.trim()) {
+    notesEl.textContent = tx.notes;
+    notesEl.classList.remove('muted');
+  } else {
+    notesEl.textContent = t('noNotes');
+    notesEl.classList.add('muted');
+  }
+
+  // History row
+  const historyRow = document.getElementById('detailsHistoryRow');
+  const historyIconBtn = document.getElementById('detailsHistoryIconBtn');
+  if (editCount > 0) {
+    historyRow.classList.remove('hidden');
+    document.getElementById('detailsHistoryCount').textContent = editCount;
+    if (historyIconBtn) historyIconBtn.style.display = '';
+  } else {
+    historyRow.classList.add('hidden');
+    if (historyIconBtn) historyIconBtn.style.display = 'none';
+  }
+
+  document.getElementById('detailsModal').classList.add('visible');
+  sounds.click();
+}
+
+function openEditFromDetails() {
+  const id = STATE._detailsTxId;
+  closeDetailsModal();
+  if (id) openEditModal(id);
+}
+
+function openHistoryFromDetails() {
+  const id = STATE._detailsTxId;
+  closeDetailsModal();
+  if (id) openHistoryModal(id);
+}
+
+function closeDetailsModal() {
+  document.getElementById('detailsModal').classList.remove('visible');
+}
+
+// ============================================
 // ADD / EDIT MODAL  ✅ BUG FIXED: saveTransaction name conflict resolved
 // ============================================
 function openAddModal() {
@@ -1834,7 +2460,7 @@ function openAddModal() {
   document.getElementById('txTitle').value = '';
   document.getElementById('txAmount').value = '';
   document.getElementById('txCategory').value = '';
-  document.getElementById('txDate').value = new Date().toISOString().slice(0,16);
+  document.getElementById('txDate').value = new Date().toISOString().slice(0, 16);
   document.getElementById('txNotes').value = '';
   selectType('income');
   document.getElementById('deleteTxBtn').classList.add('hidden');
@@ -1844,24 +2470,26 @@ function openAddModal() {
 }
 
 function openEditModal(id) {
-  const tx = STATE.transactions.find(t => t.id === id);
+  const tx = STATE.transactions.find(tx => tx.id === id);
   if (!tx) return;
   STATE.editingTxId = id;
   document.getElementById('modalTitle').textContent = t('editTransaction');
   document.getElementById('txTitle').value = tx.title || '';
   document.getElementById('txAmount').value = tx.amount || '';
   document.getElementById('txCategory').value = tx.category || '';
-  document.getElementById('txDate').value = tx.date ? tx.date.slice(0,16) : new Date().toISOString().slice(0,16);
+  document.getElementById('txDate').value = tx.date ? tx.date.slice(0, 16) : new Date().toISOString().slice(0, 16);
   document.getElementById('txNotes').value = tx.notes || '';
   selectType(tx.type || 'income');
   document.getElementById('deleteTxBtn').classList.remove('hidden');
   document.getElementById('saveTxBtn').textContent = t('save');
+
   document.getElementById('txModal').classList.add('visible');
   sounds.click();
 }
 
 function closeModal() {
   document.getElementById('txModal').classList.remove('visible');
+  STATE.editingTxId = null;
 }
 
 function selectType(type) {
@@ -1884,7 +2512,7 @@ async function saveTransaction_form() {
     return;
   }
 
-  const txData = { title, amount, type: STATE.txType, category, date, notes };
+  const txData = { title, amount, type: STATE.txType, category, date, notes, baseCurrency: STATE.settings.currency };
 
   if (STATE.editingTxId) {
     await updateTransactionFS(STATE.editingTxId, txData);
@@ -1896,9 +2524,27 @@ async function saveTransaction_form() {
     sounds.add();
   }
 
-  closeModal();
+  // Close all modals and reset state before re-rendering
+  document.getElementById('txModal').classList.remove('visible');
+  document.getElementById('detailsModal').classList.remove('visible');
+  STATE.editingTxId = null;
+  STATE._detailsTxId = null;
+
   renderDashboard();
   if (STATE.currentPage === 'transactions') renderTransactions();
+}
+
+function deleteCurrentTxFromDetails() {
+  const id = STATE._detailsTxId;
+  if (!id) return;
+  closeDetailsModal();
+  showConfirm(t('deleteConfirm'), t('deleteSub'), '🗑️', async () => {
+    await deleteTransactionFS(id);
+    sounds.delete();
+    showToast(t('txDeleted'));
+    renderDashboard();
+    if (STATE.currentPage === 'transactions') renderTransactions();
+  });
 }
 
 function deleteCurrentTx() {
@@ -1911,6 +2557,165 @@ function deleteCurrentTx() {
     renderDashboard();
     if (STATE.currentPage === 'transactions') renderTransactions();
   });
+}
+
+function quickDelete(id) {
+  sounds.click();
+  showConfirm(t('deleteConfirm'), t('deleteSub'), '🗑️', async () => {
+    await deleteTransactionFS(id);
+    sounds.delete();
+    showToast(t('txDeleted'));
+    renderDashboard();
+    if (STATE.currentPage === 'transactions') renderTransactions();
+  });
+}
+
+// ============================================
+// EDIT HISTORY MODAL
+// ============================================
+function openHistoryFromModal() {
+  if (!STATE.editingTxId) return;
+  const id = STATE.editingTxId;
+  closeModal();
+  openHistoryModal(id);
+}
+
+function openHistoryModal(id) {
+  const tx = STATE.transactions.find(tx => tx.id === id);
+  if (!tx) return;
+
+  STATE._historyTxId = id; // Track which tx's history is open
+
+  const cur = STATE.settings.currency;
+  const FIELD_LABEL_MAP = {
+    title: t('fieldTitle'), amount: t('fieldAmount'), type: t('fieldType'),
+    category: t('fieldCategory'), date: t('fieldDate'), notes: t('fieldNotes')
+  };
+
+  document.getElementById('historyModalTitle').textContent = `${t('editHistory')}: ${escapeHtml(tx.title || '-')}`;
+
+  const entries = Array.isArray(tx.editHistory) ? tx.editHistory : [];
+  const timeline = document.getElementById('historyTimeline');
+
+  if (entries.length === 0) {
+    timeline.innerHTML = `<div class="history-empty">
+      <span class="material-icons-round" style="font-size:36px;opacity:0.3;display:block;margin-bottom:8px;">history</span>
+      ${t('noHistory')}
+    </div>`;
+  } else {
+    // Build timeline: oldest first, newest last
+    const sorted = [...entries].sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+    // Created entry at the top
+    const createdTs = tx.createdAt ? new Date(tx.createdAt) : null;
+    let html = '';
+
+    // Created row
+    if (createdTs) {
+      html += `<div class="history-entry">
+        <div class="history-dot-col">
+          <div class="history-dot created"></div>
+          <div class="history-line"></div>
+        </div>
+        <div class="history-content">
+          <div class="history-action-row">
+            <span class="history-action-label created">${t('created')}</span>
+            <span class="history-timestamp">
+              <span class="material-icons-round" style="font-size:10px">schedule</span>
+              ${formatHistoryDate(createdTs)}
+            </span>
+          </div>
+          <div class="history-changes">
+            <div class="history-change-row">
+              <span class="history-field">${FIELD_LABEL_MAP.title}</span>
+              <div class="history-values">
+                <div class="history-new">${escapeHtml(tx.title || '-')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Edit entries
+    sorted.forEach((entry, idx) => {
+      const ts = new Date(entry.ts);
+      const isLast = idx === sorted.length - 1;
+      const changes = Array.isArray(entry.changes) ? entry.changes : [];
+
+      html += `<div class="history-entry">
+        <div class="history-dot-col">
+          <div class="history-dot"></div>
+          ${!isLast ? '<div class="history-line"></div>' : ''}
+        </div>
+        <div class="history-content">
+          <div class="history-action-row">
+            <span class="history-action-label">${t('edited')} #${idx + 1}</span>
+            <span class="history-timestamp">
+              <span class="material-icons-round" style="font-size:10px">schedule</span>
+              ${formatHistoryDate(ts)}
+            </span>
+          </div>
+          <div class="history-changes">
+            ${changes.length === 0
+              ? `<div style="font-size:12px;color:var(--on-surface-variant);padding:4px 0;">No field changes recorded.</div>`
+              : changes.map(c => {
+                  const label = FIELD_LABEL_MAP[c.field] || c.field;
+                  const oldDisplay = c.field === 'amount'
+                    ? `${c.oldBaseCurrency || 'BDT'} ${formatAmount(parseFloat(c.oldVal) || 0)}`
+                    : (c.field === 'date' ? formatHistoryDate(new Date(c.oldVal)) : escapeHtml(c.oldVal || '—'));
+                  const newDisplay = c.field === 'amount'
+                    ? `${c.newBaseCurrency || cur}${formatAmount(parseFloat(c.newVal) || 0)}`
+                    : (c.field === 'date' ? formatHistoryDate(new Date(c.newVal)) : escapeHtml(c.newVal || '—'));
+                  return `<div class="history-change-row">
+                    <span class="history-field">${label}</span>
+                    <div class="history-values">
+                      <div class="history-old">${oldDisplay}</div>
+                      <div class="history-arrow">↓</div>
+                      <div class="history-new">${newDisplay}</div>
+                    </div>
+                  </div>`;
+                }).join('')
+            }
+          </div>
+        </div>
+      </div>`;
+    });
+
+    timeline.innerHTML = html;
+  }
+
+  document.getElementById('historyModal').classList.add('visible');
+  sounds.click();
+}
+
+function openEditFromHistory() {
+  const id = STATE._historyTxId;
+  closeHistoryModal();
+  if (id) openEditModal(id);
+}
+
+function deleteFromHistory() {
+  const id = STATE._historyTxId;
+  if (!id) return;
+  closeHistoryModal();
+  showConfirm(t('deleteConfirm'), t('deleteSub'), '🗑️', async () => {
+    await deleteTransactionFS(id);
+    sounds.delete();
+    showToast(t('txDeleted'));
+    renderDashboard();
+    if (STATE.currentPage === 'transactions') renderTransactions();
+  });
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModal').classList.remove('visible');
+}
+
+function formatHistoryDate(d) {
+  if (!(d instanceof Date) || isNaN(d)) return '—';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ============================================
@@ -2050,6 +2855,10 @@ function setLanguage(lang) {
   document.body.classList.toggle('lang-bn', lang === 'bn');
   document.getElementById('langSubLabel').textContent = lang === 'bn' ? 'বাংলা' : 'English';
   applyTranslations();
+  // Re-render current page so dynamic content (tx items, charts) also updates
+  renderDashboard();
+  if (STATE.currentPage === 'transactions') renderTransactions();
+  if (STATE.currentPage === 'charts') renderCharts();
   saveSettings();
 }
 
@@ -2064,11 +2873,17 @@ function applyTranslations() {
 }
 
 function setCurrency(val) {
+  val = normalizeCurrency(val);
   STATE.settings.currency = val;
-  document.getElementById('currencySubLabel').textContent = val + ' ' + ({
-    '৳':'BDT','$':'USD','€':'EUR','£':'GBP','₹':'INR','¥':'JPY'
-  }[val]||'');
+  const currencyNames = {
+    'BDT':'BDT','$':'USD','€':'EUR','£':'GBP','₹':'INR','¥':'JPY',
+    'SAR':'SAR','AED':'AED','QAR':'QAR','KWD':'KWD','OMR':'OMR',
+    'BHD':'BHD','EGP':'EGP','DZD':'DZD','MAD':'MAD','LBP':'LBP'
+  };
+  document.getElementById('currencySubLabel').textContent = val + (currencyNames[val] && currencyNames[val] !== val ? ' ' + currencyNames[val] : '');
   renderDashboard();
+  if (STATE.currentPage === 'transactions') renderTransactions();
+  if (STATE.currentPage === 'charts') renderCharts();
   saveSettings();
 }
 
@@ -2084,11 +2899,18 @@ function applySettings() {
   setCSSColor(STATE.settings.color || '#6750A4');
   document.getElementById('langSelect').value = STATE.settings.language || 'en';
   document.getElementById('themeSelect').value = STATE.settings.theme || 'auto';
-  document.getElementById('currencySelect').value = STATE.settings.currency || '৳';
+  STATE.settings.currency = normalizeCurrency(STATE.settings.currency || 'BDT');
+  document.getElementById('currencySelect').value = STATE.settings.currency;
   document.getElementById('soundToggle').classList.toggle('on', STATE.settings.sound !== false);
   document.getElementById('themeSubLabel').textContent = STATE.settings.theme || 'auto';
   document.getElementById('langSubLabel').textContent = STATE.settings.language === 'bn' ? 'বাংলা' : 'English';
-  document.getElementById('currencySubLabel').textContent = (STATE.settings.currency||'৳');
+  const currencyNames = {
+    'BDT':'BDT','$':'USD','€':'EUR','£':'GBP','₹':'INR','¥':'JPY',
+    'SAR':'SAR','AED':'AED','QAR':'QAR','KWD':'KWD','OMR':'OMR',
+    'BHD':'BHD','EGP':'EGP','DZD':'DZD','MAD':'MAD','LBP':'LBP'
+  };
+  const cur = STATE.settings.currency || 'BDT';
+  document.getElementById('currencySubLabel').textContent = cur + (currencyNames[cur] && currencyNames[cur] !== cur ? ' ' + currencyNames[cur] : '');
   document.body.classList.toggle('lang-bn', STATE.settings.language === 'bn');
   applyTranslations();
   buildColorGrid();
@@ -2111,7 +2933,8 @@ function exportPDF() {
     .sort((a,b) => new Date(b.date||b.createdAt) - new Date(a.date||a.createdAt))
     .map(tx => {
       const isIncome = tx.type === 'income';
-      const amt = parseFloat(tx.amount) || 0;
+      const rawAmt = parseFloat(tx.amount) || 0;
+      const amt = convertAmount(rawAmt, tx.baseCurrency || 'BDT', cur);
       const txDate = tx.date ? new Date(tx.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '-';
       return `<tr>
         <td>${escapeHtml(tx.title||'-')}</td>
@@ -2384,12 +3207,26 @@ async function initApp() {
 window.addEventListener('DOMContentLoaded', initApp);
 
 // Close modal on overlay click
+document.getElementById('detailsModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('detailsModal') &&
+      document.getElementById('detailsModal').classList.contains('visible')) {
+    closeDetailsModal();
+  }
+});
+
 document.getElementById('txModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('txModal')) closeModal();
+  if (e.target === document.getElementById('txModal') &&
+      document.getElementById('txModal').classList.contains('visible')) {
+    closeModal();
+  }
 });
 
 document.getElementById('confirmDialog').addEventListener('click', (e) => {
   if (e.target === document.getElementById('confirmDialog')) closeConfirm();
+});
+
+document.getElementById('historyModal').addEventListener('click', (e) => {
+  // History modal closes only via close button — not backdrop click
 });
 
 </script>
