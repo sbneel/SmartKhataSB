@@ -2190,11 +2190,11 @@ async function loadSettings() {
 // ============================================
 // LOCAL STORAGE BACKUP
 // ============================================
-function saveToLocal Storage() {
+function saveToLocalStorage() {
   try { localStorage.setItem('sk_transactions', JSON.stringify(STATE.transactions)); } catch(e) {}
 }
 
-function loadFromLocal Storage() {
+function loadFromLocalStorage() {
   try {
     const data = localStorage.getItem('sk_transactions');
     STATE.transactions = data ? JSON.parse(data) : [];
