@@ -2031,13 +2031,8 @@ function initTelegram() {
     }
   }
 
-  // Fallback: dev/browser mode — use a stable anonymous ID
-  let anonId = localStorage.getItem('sk_anon_id');
-  if (!anonId) {
-    anonId = 'anon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-    localStorage.setItem('sk_anon_id', anonId);
-  }
-  STATE.userId = anonId;
+  // Fallback: dev/browser mode — use a stable anonymous ID (in-memory only)
+  STATE.userId = 'anon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   updateProfileUI('Smart Khata User', null, null);
   return false;
 }
@@ -2074,18 +2069,19 @@ function getUserRef() {
 
 async function loadTransactions() {
   if (!STATE.firebaseReady || !STATE.userId) {
-    return loadFromLocalStorage();
+    STATE.transactions = [];
+    return STATE.transactions;
   }
   try {
     const ref = getUserRef();
-    if (!ref) return loadFromLocalStorage();
+    if (!ref) { STATE.transactions = []; return STATE.transactions; }
     const snap = await ref.collection('transactions').orderBy('createdAt', 'desc').get();
     STATE.transactions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    saveToLocalStorage();
     return STATE.transactions;
   } catch (err) {
-    console.warn('Firestore load failed, using localStorage:', err.message);
-    return loadFromLocalStorage();
+    console.warn('Firestore load failed:', err.message);
+    STATE.transactions = [];
+    return STATE.transactions;
   }
 }
 
@@ -2108,10 +2104,12 @@ async function _saveTransactionToFirestore(txData) {
 
 async function addTransaction(txData) {
   const fsId = await _saveTransactionToFirestore(txData);
-  const id = fsId || ('local_' + Date.now());
-  const tx = { id, ...txData, createdAt: new Date().toISOString() };
+  if (!fsId) {
+    showToast('Firebase save failed. Check connection.', 'error');
+    return null;
+  }
+  const tx = { id: fsId, ...txData, createdAt: new Date().toISOString() };
   STATE.transactions.unshift(tx);
-  saveToLocalStorage();
   return tx;
 }
 
@@ -2150,10 +2148,9 @@ async function updateTransactionFS(id, newData) {
   const updatedTx = { ...old, ...newData, editHistory };
 
   STATE.transactions[idx] = updatedTx;
-  saveToLocalStorage();
 
   const ref = getUserRef();
-  if (!STATE.firebaseReady || !ref || id.startsWith('local_')) return;
+  if (!STATE.firebaseReady || !ref) return;
   try {
     await ref.collection('transactions').doc(id).update({ ...newData, editHistory });
   } catch (e) {
@@ -2163,43 +2160,24 @@ async function updateTransactionFS(id, newData) {
 
 async function deleteTransactionFS(id) {
   STATE.transactions = STATE.transactions.filter(t => t.id !== id);
-  saveToLocalStorage();
   const ref = getUserRef();
-  if (!STATE.firebaseReady || !ref || id.startsWith('local_')) return;
+  if (!STATE.firebaseReady || !ref) return;
   try { await ref.collection('transactions').doc(id).delete(); } catch(e) {}
 }
 
 async function saveSettings() {
-  localStorage.setItem('sk_settings', JSON.stringify(STATE.settings));
   const ref = getUserRef();
   if (!STATE.firebaseReady || !ref) return;
   try { await ref.collection('settings').doc('main').set(STATE.settings, { merge: true }); } catch(e) {}
 }
 
 async function loadSettings() {
-  const local = localStorage.getItem('sk_settings');
-  if (local) { try { Object.assign(STATE.settings, JSON.parse(local)); } catch(e) {} }
   const ref = getUserRef();
   if (!STATE.firebaseReady || !ref) return;
   try {
     const doc = await ref.collection('settings').doc('main').get();
     if (doc.exists) Object.assign(STATE.settings, doc.data());
   } catch(e) {}
-}
-
-// ============================================
-// LOCAL STORAGE BACKUP
-// ============================================
-function saveToLocalStorage() {
-  try { localStorage.setItem('sk_transactions', JSON.stringify(STATE.transactions)); } catch(e) {}
-}
-
-function loadFromLocalStorage() {
-  try {
-    const data = localStorage.getItem('sk_transactions');
-    STATE.transactions = data ? JSON.parse(data) : [];
-    return STATE.transactions;
-  } catch(e) { STATE.transactions = []; return []; }
 }
 
 // ============================================
@@ -2530,7 +2508,8 @@ async function saveTransaction_form() {
     showToast(t('txUpdated'), 'success');
     sounds.add();
   } else {
-    await addTransaction(txData);
+    const result = await addTransaction(txData);
+    if (!result) return; // Firebase save failed, toast already shown
     showToast(t('txAdded'), 'success');
     sounds.add();
   }
@@ -3057,7 +3036,6 @@ function exportPDF() {
 function confirmReset() {
   showConfirm(t('resetConfirm'), t('resetSub'), '⚠️', async () => {
     STATE.transactions = [];
-    saveToLocalStorage();
     if (STATE.firebaseReady) {
       const ref = getUserRef();
       if (ref) {
