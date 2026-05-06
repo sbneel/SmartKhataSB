@@ -1567,7 +1567,7 @@ select option { background: var(--card-bg); color: var(--on-surface); }
 // ============================================
 // FIREBASE CONFIGURATION  ✅ BUG FIXED: was {{ double brace
 // ============================================
-const firebase aConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyALwSGMKJgGbIngfweOJV4edhrsE0FoGPs",
   authDomain: "smartkhatasb.firebaseapp.com",
   projectId: "smartkhatasb",
@@ -2190,11 +2190,11 @@ async function loadSettings() {
 // ============================================
 // LOCAL STORAGE BACKUP
 // ============================================
-function saveToLocalStorage() {
+function saveToLocal Storage() {
   try { localStorage.setItem('sk_transactions', JSON.stringify(STATE.transactions)); } catch(e) {}
 }
 
-function loadFromLocalStorage() {
+function loadFromLocal Storage() {
   try {
     const data = localStorage.getItem('sk_transactions');
     STATE.transactions = data ? JSON.parse(data) : [];
