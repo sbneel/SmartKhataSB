@@ -578,14 +578,10 @@ body.lang-bn { font-family: var(--font-bn); }
   background: rgba(0,0,0,0.5); display: none;
   align-items: flex-end; justify-content: center;
   backdrop-filter: blur(4px);
-  pointer-events: none;
-}
-
-.modal-overlay.visible {
-  display: flex;
-  pointer-events: auto;
   animation: overlayIn 0.2s ease;
 }
+
+.modal-overlay.visible { display: flex; }
 
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -594,9 +590,6 @@ body.lang-bn { font-family: var(--font-bn); }
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%; max-width: 500px;
   max-height: 92vh; overflow-y: auto;
-}
-
-.modal-overlay.visible .modal-sheet {
   animation: sheetUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -714,10 +707,9 @@ body.lang-bn { font-family: var(--font-bn); }
   background: rgba(0,0,0,0.5); display: none;
   align-items: center; justify-content: center; padding: 24px;
   backdrop-filter: blur(4px);
-  pointer-events: none;
 }
 
-.confirm-dialog.visible { display: flex; pointer-events: auto; }
+.confirm-dialog.visible { display: flex; }
 
 .confirm-card {
   background: var(--card-bg); border-radius: var(--radius-xl);
@@ -923,153 +915,121 @@ select option { background: var(--card-bg); color: var(--on-surface); }
 
 
 
-.history-modal-overlay {
-  position: fixed; inset: 0; z-index: 210;
-  background: rgba(0,0,0,0.55);
-  display: none; align-items: flex-end; justify-content: center;
-  backdrop-filter: blur(4px);
-  pointer-events: none;
-}
-.history-modal-overlay.visible {
-  display: flex;
-  pointer-events: auto;
-  animation: overlayIn 0.2s ease;
-}
+/* History Modal - hidden (history is now inline in details) */
+.history-modal-overlay { display: none !important; }
 
-.history-sheet {
-  background: var(--card-bg);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  width: 100%; max-width: 500px;
-  max-height: 88vh; overflow-y: auto;
-}
-
-.history-modal-overlay.visible .history-sheet {
-  animation: sheetUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.history-timeline { padding: 0 20px 8px; }
-
-.history-action-bar {
-  display: flex; gap: 8px;
-  padding: 10px 20px 20px;
+/* History inline panel inside details modal */
+.history-inline-panel {
+  margin-top: 8px;
   border-top: 1px solid var(--outline-variant);
-  background: var(--card-bg);
-  position: sticky; bottom: 0;
+  padding-top: 12px;
 }
+.history-inline-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.history-inline-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: var(--on-surface-variant);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.history-inline-title .material-icons-round { font-size: 14px; }
+.history-inline-count {
+  display: inline-flex; align-items: center;
+  padding: 1px 7px; border-radius: 20px;
+  background: var(--primary-light); color: var(--primary);
+  font-size: 10px; font-weight: 700;
+}
+.history-timeline { display: flex; flex-direction: column; gap: 8px; }
 
+/* Timeline entries - professional */
 .history-entry {
-  display: flex; gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--outline-variant);
-  position: relative;
+  display: flex; gap: 10px; position: relative;
 }
-.history-entry:last-child { border-bottom: none; }
 
 .history-dot-col {
   display: flex; flex-direction: column; align-items: center;
-  flex-shrink: 0; padding-top: 3px;
+  flex-shrink: 0; width: 16px;
 }
 
 .history-dot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: var(--primary); flex-shrink: 0;
-  box-shadow: 0 0 0 3px rgba(103,80,164,0.18);
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  background: var(--primary);
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 0 0 2px var(--primary);
+  z-index: 1;
 }
-.history-dot.created { background: var(--income-color); box-shadow: 0 0 0 3px rgba(27,135,58,0.18); }
-.history-dot.deleted { background: var(--expense-color); box-shadow: 0 0 0 3px rgba(192,57,43,0.18); }
+.history-dot.created {
+  background: var(--income-color);
+  box-shadow: 0 0 0 2px var(--income-color);
+}
 
 .history-line {
   width: 2px; flex: 1; background: var(--outline-variant);
-  margin-top: 5px; min-height: 20px;
+  margin: 3px 0; min-height: 12px;
 }
 
-.history-content { flex: 1; min-width: 0; }
+.history-content { flex: 1; min-width: 0; padding-bottom: 10px; }
 
-.history-action-row {
+/* Entry card */
+.history-card {
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px; overflow: hidden;
+}
+
+.history-card-head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 5px;
+  padding: 7px 10px;
+  background: var(--surface-variant);
 }
-
-.history-action-label {
-  font-size: 11px; font-weight: 700;
-  color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px;
+.history-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
 }
-.history-action-label.created { color: var(--income-color); }
-.history-action-label.deleted { color: var(--expense-color); }
+.history-badge.created { background: #E8F5E9; color: var(--income-color); }
+.history-badge.edited  { background: var(--primary-light); color: var(--primary); }
+.history-badge .material-icons-round { font-size: 10px; }
 
 .history-timestamp {
-  font-size: 10px; color: var(--on-surface-variant);
-  display: flex; align-items: center; gap: 3px;
+  font-size: 9px; color: var(--on-surface-variant);
+  display: flex; align-items: center; gap: 2px;
 }
+.history-timestamp .material-icons-round { font-size: 10px; }
 
-.history-changes { display: flex; flex-direction: column; gap: 4px; }
+.history-changes { padding: 7px 10px; display: flex; flex-direction: column; gap: 5px; }
 
 .history-change-row {
-  display: flex; align-items: flex-start; gap: 6px;
-  background: var(--surface-variant); border-radius: 7px;
-  padding: 6px 8px;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface-variant); border-radius: 7px; padding: 5px 8px;
+  flex-wrap: wrap;
 }
-
 .history-field {
-  font-size: 9px; font-weight: 700; color: var(--on-surface-variant);
-  text-transform: uppercase; letter-spacing: 0.3px; min-width: 50px; flex-shrink: 0;
-  padding-top: 1px;
+  font-size: 9px; font-weight: 700; color: var(--primary);
+  text-transform: uppercase; letter-spacing: 0.3px;
+  background: var(--primary-light); padding: 1px 6px; border-radius: 5px;
+  flex-shrink: 0;
 }
-
-.history-values { flex: 1; min-width: 0; }
-
 .history-old {
   font-size: 11px; color: var(--expense-color);
-  text-decoration: line-through; word-break: break-word;
-  opacity: 0.85;
+  text-decoration: line-through; opacity: 0.8; word-break: break-word;
 }
-
 .history-arrow {
-  font-size: 10px; color: var(--on-surface-variant); margin: 1px 0;
+  font-size: 12px; color: var(--on-surface-variant); flex-shrink: 0;
 }
-
 .history-new {
   font-size: 11px; color: var(--income-color);
   font-weight: 600; word-break: break-word;
 }
-
 .history-empty {
-  text-align: center; padding: 28px 0; color: var(--on-surface-variant); font-size: 13px;
+  text-align: center; padding: 12px 0; color: var(--on-surface-variant); font-size: 12px;
 }
 
-.history-view-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 9px; border-radius: 7px;
-  border: 1.5px solid var(--primary); background: transparent;
-  color: var(--primary); font-size: 11px; font-weight: 600;
-  cursor: pointer; transition: var(--transition); font-family: var(--font-main);
-}
-.history-view-btn:hover { background: var(--primary-light); }
-.history-view-btn .material-icons-round { font-size: 12px; }
-
-.tx-action-btn {
-  width: 26px; height: 26px; border-radius: 7px; border: none;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: var(--transition); flex-shrink: 0;
-}
-.tx-action-btn:active { transform: scale(0.9); }
-
-.tx-history-icon {
-  display: inline-flex; align-items: center; gap: 2px;
-  cursor: pointer; color: var(--primary); opacity: 0.72;
-  font-size: 10px; font-weight: 600;
-  padding: 1px 5px; border-radius: 5px;
-  background: var(--primary-light);
-  transition: opacity 0.2s;
-}
-.tx-history-icon:hover { opacity: 1; }
-
-/* History action bar buttons - smaller */
-.history-action-bar .btn {
-  padding: 8px 12px; font-size: 12px;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-}
-.history-action-bar .btn .material-icons-round { font-size: 15px; vertical-align: middle; }
+/* keep compat */
+.history-action-row { display: none; }
+.history-view-btn, .tx-action-btn, .tx-history-icon { display: none; }
+.history-action-bar { display: none !important; }
 
 </style>
 </head>
@@ -1431,8 +1391,18 @@ select option { background: var(--card-bg); color: var(--on-surface); }
             <div class="details-row-value" id="detailsNotes">-</div>
           </div>
         </div>
-        <div id="detailsHistoryRow" class="hidden" style="border-top:1px solid var(--outline-variant);margin-top:4px;"></div>
-        <!-- Three small icon buttons at bottom -->
+        <!-- Inline history panel -->
+        <div id="detailsHistoryInline" class="hidden history-inline-panel">
+          <div class="history-inline-header">
+            <div class="history-inline-title">
+              <span class="material-icons-round">history</span>
+              Edit History
+              <span class="history-inline-count" id="detailsHistoryInlineCount">0</span>
+            </div>
+          </div>
+          <div class="history-timeline" id="detailsHistoryTimeline"></div>
+        </div>
+        <!-- Action buttons -->
         <div class="details-icon-actions">
           <button class="details-icon-btn" onclick="openEditFromDetails()" title="Edit">
             <span class="details-icon-btn-icon">✏️</span>
@@ -1442,9 +1412,9 @@ select option { background: var(--card-bg); color: var(--on-surface); }
             <span class="details-icon-btn-icon">🗑️</span>
             <span class="details-icon-btn-label" data-i18n="delete">Delete</span>
           </button>
-          <button class="details-icon-btn details-icon-btn--history" id="detailsHistoryIconBtn" onclick="openHistoryFromDetails()" title="View Edit History" style="display:none;">
+          <button class="details-icon-btn details-icon-btn--history" id="detailsHistoryIconBtn" onclick="toggleHistoryInline()" title="View Edit History" style="display:none;">
             <span class="details-icon-btn-icon">🕓</span>
-            <span class="details-icon-btn-label" data-i18n="viewEditHistory">History <span id="detailsHistoryCount" style="font-size:9px;font-weight:700;"></span></span>
+            <span class="details-icon-btn-label">History <span id="detailsHistoryCount" style="font-size:9px;font-weight:700;"></span></span>
           </button>
         </div>
       </div>
@@ -2277,10 +2247,11 @@ function txItemHTML(tx) {
   const dateStr = tx.date
     ? new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
     : '';
+  const editCount = Array.isArray(tx.editHistory) ? tx.editHistory.length : 0;
   const rawAmount = parseFloat(tx.amount) || 0;
   const displayAmount = convertAmount(rawAmount, tx.baseCurrency || 'BDT', cur);
 
-  return `<div class="transaction-item" data-tx-id="${escapeHtml(tx.id)}" onclick="openDetailsModal('${escapeHtml(tx.id)}')">
+  return `<div class="transaction-item" data-tx-id="${escapeHtml(tx.id)}">
     <div class="tx-icon ${isIncome ? 'income-icon' : 'expense-icon'}">${emoji}</div>
     <div class="tx-info">
       <div class="tx-title">${escapeHtml(tx.title || '-')}</div>
@@ -2418,20 +2389,131 @@ function openDetailsModal(id) {
     notesEl.classList.add('muted');
   }
 
-  // History row
-  const historyRow = document.getElementById('detailsHistoryRow');
+  // History button visibility (inline panel handled below)
+  const editCountForBtn = editCount;  // used below
+
+  // ── Inline history panel ──────────────────────────────────
+  const historyInline = document.getElementById('detailsHistoryInline');
   const historyIconBtn = document.getElementById('detailsHistoryIconBtn');
   if (editCount > 0) {
-    historyRow.classList.remove('hidden');
+    historyIconBtn.style.display = '';
     document.getElementById('detailsHistoryCount').textContent = editCount;
-    if (historyIconBtn) historyIconBtn.style.display = '';
+    document.getElementById('detailsHistoryInlineCount').textContent = editCount;
+    // Render inline timeline
+    renderInlineHistory(tx);
+    // Start collapsed
+    historyInline.classList.add('hidden');
   } else {
-    historyRow.classList.add('hidden');
-    if (historyIconBtn) historyIconBtn.style.display = 'none';
+    historyIconBtn.style.display = 'none';
+    historyInline.classList.add('hidden');
   }
 
   document.getElementById('detailsModal').classList.add('visible');
   sounds.click();
+}
+
+function toggleHistoryInline() {
+  const panel = document.getElementById('detailsHistoryInline');
+  panel.classList.toggle('hidden');
+  sounds.click();
+}
+
+function renderInlineHistory(tx) {
+  const cur = STATE.settings.currency;
+  const entries = Array.isArray(tx.editHistory) ? tx.editHistory : [];
+  const sorted = [...entries].sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  const timeline = document.getElementById('detailsHistoryTimeline');
+
+  const FIELD_META = {
+    title:    { label: 'Title',    icon: 'title' },
+    amount:   { label: 'Amount',   icon: 'payments' },
+    type:     { label: 'Type',     icon: 'swap_vert' },
+    category: { label: 'Category', icon: 'category' },
+    date:     { label: 'Date',     icon: 'calendar_today' },
+    notes:    { label: 'Notes',    icon: 'notes' },
+  };
+
+  let html = '';
+
+  // Created entry
+  const createdDate = tx.createdAt ? new Date(tx.createdAt) : null;
+  if (createdDate) {
+    html += `
+    <div class="history-entry">
+      <div class="history-dot-col">
+        <div class="history-dot created"></div>
+        ${sorted.length > 0 ? '<div class="history-line"></div>' : ''}
+      </div>
+      <div class="history-content">
+        <div class="history-card">
+          <div class="history-card-head">
+            <span class="history-badge created">
+              <span class="material-icons-round">add_circle_outline</span>Created
+            </span>
+            <span class="history-timestamp">
+              <span class="material-icons-round">schedule</span>
+              ${formatHistoryDate(createdDate)}
+            </span>
+          </div>
+          <div class="history-changes">
+            <div class="history-change-row">
+              <span class="history-field">Title</span>
+              <span class="history-new">${escapeHtml(tx.title || '—')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  sorted.forEach((entry, idx) => {
+    const ts = new Date(entry.ts);
+    const isLast = idx === sorted.length - 1;
+    const changes = Array.isArray(entry.changes) ? entry.changes : [];
+
+    const changesHTML = changes.length === 0
+      ? `<div class="history-empty">No field changes recorded.</div>`
+      : changes.map(c => {
+          const meta = FIELD_META[c.field] || { label: c.field, icon: 'edit' };
+          const fmtVal = (val, field, baseCur) => {
+            if (!val) return '—';
+            if (field === 'amount') return `${baseCur||'BDT'} ${formatAmount(parseFloat(val)||0)}`;
+            if (field === 'date') return formatHistoryDate(new Date(val));
+            return escapeHtml(val);
+          };
+          return `<div class="history-change-row">
+            <span class="history-field">${meta.label}</span>
+            <span class="history-old">${fmtVal(c.oldVal, c.field, c.oldBaseCurrency)}</span>
+            <span class="history-arrow">→</span>
+            <span class="history-new">${fmtVal(c.newVal, c.field, c.newBaseCurrency)}</span>
+          </div>`;
+        }).join('');
+
+    html += `
+    <div class="history-entry">
+      <div class="history-dot-col">
+        <div class="history-dot"></div>
+        ${!isLast ? '<div class="history-line"></div>' : ''}
+      </div>
+      <div class="history-content">
+        <div class="history-card">
+          <div class="history-card-head">
+            <span class="history-badge edited">
+              <span class="material-icons-round">edit</span>Edit #${idx+1}
+              ${changes.length ? ` · ${changes.length} field${changes.length>1?'s':''}` : ''}
+            </span>
+            <span class="history-timestamp">
+              <span class="material-icons-round">schedule</span>
+              ${formatHistoryDate(ts)}
+            </span>
+          </div>
+          <div class="history-changes">${changesHTML}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  timeline.innerHTML = html;
 }
 
 function openEditFromDetails() {
@@ -2489,7 +2571,6 @@ function openEditModal(id) {
 
 function closeModal() {
   document.getElementById('txModal').classList.remove('visible');
-  STATE.editingTxId = null;
 }
 
 function selectType(type) {
@@ -2498,7 +2579,6 @@ function selectType(type) {
   document.getElementById('typeBtnExpense').className = 'type-btn expense' + (type==='expense'?' active':'');
 }
 
-// ✅ BUG FIXED: renamed to avoid collision with Firestore saveTransaction function
 async function saveTransaction_form() {
   const title = document.getElementById('txTitle').value.trim();
   const amount = parseFloat(document.getElementById('txAmount').value);
@@ -2515,23 +2595,22 @@ async function saveTransaction_form() {
   const txData = { title, amount, type: STATE.txType, category, date, notes, baseCurrency: STATE.settings.currency };
 
   if (STATE.editingTxId) {
-    await updateTransactionFS(STATE.editingTxId, txData);
+    const editedId = STATE.editingTxId;
+    await updateTransactionFS(editedId, txData);
     showToast(t('txUpdated'), 'success');
     sounds.add();
+    closeModal();
+    renderDashboard();
+    if (STATE.currentPage === 'transactions') renderTransactions();
+    openDetailsModal(editedId);
   } else {
     await addTransaction(txData);
     showToast(t('txAdded'), 'success');
     sounds.add();
+    closeModal();
+    renderDashboard();
+    if (STATE.currentPage === 'transactions') renderTransactions();
   }
-
-  // Close all modals and reset state before re-rendering
-  document.getElementById('txModal').classList.remove('visible');
-  document.getElementById('detailsModal').classList.remove('visible');
-  STATE.editingTxId = null;
-  STATE._detailsTxId = null;
-
-  renderDashboard();
-  if (STATE.currentPage === 'transactions') renderTransactions();
 }
 
 function deleteCurrentTxFromDetails() {
@@ -3206,19 +3285,24 @@ async function initApp() {
 // Start app
 window.addEventListener('DOMContentLoaded', initApp);
 
-// Close modal on overlay click
-document.getElementById('detailsModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('detailsModal') &&
-      document.getElementById('detailsModal').classList.contains('visible')) {
-    closeDetailsModal();
+// ============================================
+// EVENT DELEGATION — transaction item clicks
+// ============================================
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.transaction-item[data-tx-id]');
+  if (item) {
+    const id = item.dataset.txId;
+    if (id) openDetailsModal(id);
   }
 });
 
+// Close modal on overlay click
+document.getElementById('detailsModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('detailsModal')) closeDetailsModal();
+});
+
 document.getElementById('txModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('txModal') &&
-      document.getElementById('txModal').classList.contains('visible')) {
-    closeModal();
-  }
+  if (e.target === document.getElementById('txModal')) closeModal();
 });
 
 document.getElementById('confirmDialog').addEventListener('click', (e) => {
