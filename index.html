@@ -14,8 +14,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // ─── REPLACE WITH YOUR FIREBASE CONFIG ───
-  const firebaseConfig = {
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyALwSGMKJgGbIngfweOJV4edhrsE0FoGPs",
   authDomain: "smartkhatasb.firebaseapp.com",
   databaseURL: "https://smartkhatasb-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -24,7 +24,7 @@
   messagingSenderId: "95099547746",
   appId: "1:95099547746:web:c2441b8976cd7067c9a13b",
   measurementId: "G-WCEXRY68E0"
-};
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
